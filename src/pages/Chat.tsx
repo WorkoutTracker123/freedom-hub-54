@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, User, Users } from "lucide-react";
+import { useUsername } from "@/hooks/useUsername";
 
 interface Message {
   id: number;
@@ -12,7 +13,7 @@ interface Message {
 const randomNames = ["Shadow", "Ghost", "Cipher", "Pixel", "Nova", "Byte", "Flux", "Neon", "Volt", "Echo"];
 
 const Chat = () => {
-  const [username] = useState(() => randomNames[Math.floor(Math.random() * randomNames.length)] + Math.floor(Math.random() * 999));
+  const { username } = useUsername();
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, text: "Welcome to FreeZone Chat! 🎉 This is a local demo — messages stay in your browser.", sender: "System", timestamp: new Date(), isMe: false },
   ]);
@@ -35,7 +36,6 @@ const Chat = () => {
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
 
-    // Simulate a reply
     setTimeout(() => {
       const replies = [
         "Hey, what's up? 👋",
@@ -68,7 +68,6 @@ const Chat = () => {
           Anonymous chat — no accounts, no logs
         </p>
 
-        {/* User info */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
             <User className="w-4 h-4 text-primary" />
@@ -80,7 +79,6 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Chat Window */}
         <div className="glass-card neon-border rounded-xl flex flex-col h-[500px]">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((msg) => (
@@ -89,8 +87,6 @@ const Chat = () => {
                   className={`max-w-[75%] rounded-xl px-4 py-2.5 ${
                     msg.isMe
                       ? "bg-primary/15 border border-primary/30"
-                      : msg.sender === "System"
-                      ? "bg-secondary border border-border"
                       : "bg-secondary border border-border"
                   }`}
                 >
@@ -109,7 +105,6 @@ const Chat = () => {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <div className="border-t border-border/50 p-3">
             <div className="flex gap-2">
               <input

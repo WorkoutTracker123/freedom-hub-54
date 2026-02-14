@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { Gamepad2, Globe, MessageCircle, Home, Shield } from "lucide-react";
+import { Gamepad2, Globe, MessageCircle, Home, Shield, Settings } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/games", label: "Games", icon: Gamepad2 },
   { path: "/proxy", label: "Proxy", icon: Globe },
   { path: "/chat", label: "Chat", icon: MessageCircle },
+  { path: "/settings", label: "Settings", icon: Settings },
 ];
 
 const Navbar = () => {
@@ -25,14 +26,14 @@ const Navbar = () => {
               <Link
                 key={path}
                 to={path}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-sm transition-all ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-sm transition-all ${
                   isActive
                     ? "bg-primary/10 text-primary neon-border"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{label}</span>
+                <span className="hidden md:inline">{label}</span>
               </Link>
             );
           })}

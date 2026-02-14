@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Games from "./pages/Games";
 import Proxy from "./pages/Proxy";
 import Chat from "./pages/Chat";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/games" element={<Games />} />
             <Route path="/proxy" element={<Proxy />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
