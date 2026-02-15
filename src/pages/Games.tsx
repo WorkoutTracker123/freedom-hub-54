@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, Star, X, Maximize2, Minimize2, ArrowLeft, Heart } from "lucide-react";
+import { Search, Heart } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 
 const COVER_URL = "https://cdn.jsdelivr.net/gh/gn-math/covers@main";
@@ -27,8 +27,6 @@ const Games = () => {
   const [search, setSearch] = useState("");
   const [activeTag, setActiveTag] = useState("All");
   const [showFavorites, setShowFavorites] = useState(false);
-  const [activeGame, setActiveGame] = useState<Zone | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const { settings, toggleFavoriteGame } = useSettings();
 
   useEffect(() => {
@@ -58,73 +56,29 @@ const Games = () => {
   }, [zones, search, activeTag, showFavorites, settings.favoriteGames]);
 
   const openGame = (zone: Zone) => {
-    setActiveGame(zone);
-    setIsFullscreen(false);
+    const gameUrl = resolveUrl(zone.url);
+    // Open game in about:blank window for maximum compatibility
+    const win = window.open("about:blank", "_blank");
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${zone.name}</title>
+        <link rel="icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { overflow: hidden; background: #000; }
+          iframe { width: 100vw; height: 100vh; border: none; }
+        </style>
+      </head>
+      <body>
+        <iframe src="${gameUrl}" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
+      </body>
+      </html>
+    `);
+    win.document.close();
   };
-
-  const closeGame = () => {
-    setActiveGame(null);
-    setIsFullscreen(false);
-  };
-
-  // Fullscreen game player
-  if (activeGame) {
-    const gameUrl = resolveUrl(activeGame.url);
-    const isFav = settings.favoriteGames.includes(activeGame.id);
-
-    return (
-      <div className={`${isFullscreen ? "fixed inset-0 z-[100]" : "min-h-screen py-4"}`}>
-        <div className={`${isFullscreen ? "h-full flex flex-col" : "container mx-auto px-4 flex flex-col"}`}>
-          {/* Toolbar */}
-          <div className="glass-card rounded-t-xl px-4 py-2 flex items-center justify-between gap-2 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <button onClick={closeGame} className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground font-mono text-sm transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-              <span className="text-foreground font-mono font-semibold text-sm">{activeGame.name}</span>
-              {activeGame.author && (
-                <span className="text-muted-foreground text-xs font-mono hidden sm:inline">by {activeGame.author}</span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => toggleFavoriteGame(activeGame.id)}
-                className={`p-2 rounded-lg transition-all ${isFav ? "text-red-400 bg-red-400/10" : "text-muted-foreground hover:text-foreground"}`}
-                title={isFav ? "Remove from favorites" : "Add to favorites"}
-              >
-                <Heart className={`w-4 h-4 ${isFav ? "fill-current" : ""}`} />
-              </button>
-              <button
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-              >
-                {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={closeGame}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-          {/* iframe */}
-          <div className={`flex-1 ${isFullscreen ? "" : "rounded-b-xl overflow-hidden"}`} style={{ minHeight: isFullscreen ? undefined : "75vh" }}>
-            <iframe
-              src={gameUrl}
-              className="w-full h-full border-0 bg-background"
-              style={{ minHeight: isFullscreen ? "100%" : "75vh" }}
-              allow="autoplay; fullscreen; gamepad"
-              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              title={activeGame.name}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen py-12">
