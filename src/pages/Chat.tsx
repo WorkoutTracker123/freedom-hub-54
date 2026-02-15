@@ -1,62 +1,85 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Users } from "lucide-react";
+import { Send, User, Users, Trash2 } from "lucide-react";
 import { useUsername } from "@/hooks/useUsername";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Message {
-  id: number;
-  text: string;
-  sender: string;
-  timestamp: Date;
-  isMe: boolean;
+interface ChatMessage {
+  id: string;
+  username: string;
+  message: string;
+  created_at: string;
 }
-
-const randomNames = ["Shadow", "Ghost", "Cipher", "Pixel", "Nova", "Byte", "Flux", "Neon", "Volt", "Echo"];
 
 const Chat = () => {
   const { username } = useUsername();
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Welcome to FreeZone Chat! 🎉 This is a local demo — messages stay in your browser.", sender: "System", timestamp: new Date(), isMe: false },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [onlineCount, setOnlineCount] = useState(1);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Load recent messages & subscribe to realtime
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const { data } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .gte("created_at", thirtyMinAgo)
+        .order("created_at", { ascending: true })
+        .limit(200);
+      if (data) setMessages(data as ChatMessage[]);
+    };
+    fetchMessages();
+
+    const channel = supabase
+      .channel("chat-room")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as ChatMessage]);
+        }
+      )
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineCount(Object.keys(state).length);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ username });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [username]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
-    const newMsg: Message = {
-      id: Date.now(),
-      text: input.trim(),
-      sender: username,
-      timestamp: new Date(),
-      isMe: true,
-    };
-    setMessages((prev) => [...prev, newMsg]);
+    const text = input.trim();
     setInput("");
-
-    setTimeout(() => {
-      const replies = [
-        "Hey, what's up? 👋",
-        "Cool, glad you're here!",
-        "This place is awesome 🔥",
-        "Anyone playing games?",
-        "Freedom is everything ✊",
-        "Stay safe out there 💚",
-      ];
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          text: replies[Math.floor(Math.random() * replies.length)],
-          sender: randomNames[Math.floor(Math.random() * randomNames.length)] + Math.floor(Math.random() * 999),
-          timestamp: new Date(),
-          isMe: false,
-        },
-      ]);
-    }, 1000 + Math.random() * 2000);
+    await supabase.from("chat_messages").insert({
+      username,
+      message: text,
+    });
   };
+
+  // Cleanup old messages client-side
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessages((prev) =>
+        prev.filter(
+          (m) => new Date(m.created_at).getTime() > Date.now() - 30 * 60 * 1000
+        )
+      );
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen py-12">
@@ -65,7 +88,7 @@ const Chat = () => {
           <span className="neon-text">Chat</span>
         </h1>
         <p className="text-muted-foreground font-mono text-sm mb-6">
-          Anonymous chat — no accounts, no logs
+          Anonymous real-time chat — no accounts, messages auto-delete after 30 min
         </p>
 
         <div className="flex items-center gap-4 mb-4">
@@ -75,33 +98,41 @@ const Chat = () => {
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
             <Users className="w-4 h-4 text-neon-green" />
-            <span className="font-mono text-sm text-neon-green">{Math.floor(Math.random() * 50 + 10)} online</span>
+            <span className="font-mono text-sm text-neon-green">{onlineCount} online</span>
           </div>
         </div>
 
         <div className="glass-card neon-border rounded-xl flex flex-col h-[500px]">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.isMe ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[75%] rounded-xl px-4 py-2.5 ${
-                    msg.isMe
-                      ? "bg-primary/15 border border-primary/30"
-                      : "bg-secondary border border-border"
-                  }`}
-                >
-                  {!msg.isMe && (
-                    <span className={`block text-xs font-mono mb-1 ${msg.sender === "System" ? "text-neon-green" : "text-neon-purple"}`}>
-                      {msg.sender}
-                    </span>
-                  )}
-                  <p className="text-sm text-foreground">{msg.text}</p>
-                  <span className="block text-[10px] text-muted-foreground mt-1 font-mono">
-                    {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground font-mono text-sm py-8">
+                No messages yet — say something! 👋
               </div>
-            ))}
+            )}
+            {messages.map((msg) => {
+              const isMe = msg.username === username;
+              return (
+                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[75%] rounded-xl px-4 py-2.5 ${
+                      isMe
+                        ? "bg-primary/15 border border-primary/30"
+                        : "bg-secondary border border-border"
+                    }`}
+                  >
+                    {!isMe && (
+                      <span className="block text-xs font-mono mb-1 text-neon-purple">
+                        {msg.username}
+                      </span>
+                    )}
+                    <p className="text-sm text-foreground">{msg.message}</p>
+                    <span className="block text-[10px] text-muted-foreground mt-1 font-mono">
+                      {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
             <div ref={bottomRef} />
           </div>
 
