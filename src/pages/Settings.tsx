@@ -30,7 +30,7 @@ const Settings = () => {
         <h1 className="text-4xl font-black mb-2">
           <span className="neon-text">Settings</span>
         </h1>
-        <p className="text-muted-foreground font-mono text-sm mb-8">Customize your FreeZone experience</p>
+        <p className="text-muted-foreground font-mono text-sm mb-8">Customize your TakaoNet experience</p>
 
         <div className="space-y-6">
           {/* Profile */}

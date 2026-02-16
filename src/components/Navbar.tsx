@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Gamepad2, Globe, MessageCircle, Home, Shield, Settings } from "lucide-react";
+import { Gamepad2, Globe, MessageCircle, Home, Zap, Settings } from "lucide-react";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
@@ -16,8 +16,8 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
-          <Shield className="w-6 h-6 text-primary group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] transition-all" />
-          <span className="font-mono font-bold text-lg neon-text">FreeZone</span>
+          <Zap className="w-6 h-6 text-primary group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)] transition-all" />
+          <span className="font-mono font-bold text-lg neon-text">TakaoNet</span>
         </Link>
         <div className="flex items-center gap-1">
           {navItems.map(({ path, label, icon: Icon }) => {

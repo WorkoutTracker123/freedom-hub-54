@@ -97,8 +97,8 @@ const Chat = () => {
             <span className="font-mono text-sm text-foreground">{username}</span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-card">
-            <Users className="w-4 h-4 text-neon-green" />
-            <span className="font-mono text-sm text-neon-green">{onlineCount} online</span>
+            <Users className="w-4 h-4 text-primary" />
+            <span className="font-mono text-sm text-primary">{onlineCount} online</span>
           </div>
         </div>
 
@@ -121,7 +121,7 @@ const Chat = () => {
                     }`}
                   >
                     {!isMe && (
-                      <span className="block text-xs font-mono mb-1 text-neon-purple">
+                      <span className="block text-xs font-mono mb-1 text-accent">
                         {msg.username}
                       </span>
                     )}
