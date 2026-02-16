@@ -1,4 +1,4 @@
-import { Shield, Gamepad2, Globe, MessageCircle, Zap, Lock } from "lucide-react";
+import { Zap, Gamepad2, Globe, MessageCircle, Lock } from "lucide-react";
 import FeatureCard from "../components/FeatureCard";
 
 const Index = () => {
@@ -13,7 +13,7 @@ const Index = () => {
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card neon-border mb-8">
             <Lock className="w-4 h-4 text-primary" />
-            <span className="font-mono text-sm text-primary">Encrypted & Anonymous</span>
+            <span className="font-mono text-sm text-primary">TakaoNet • Encrypted & Anonymous</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
@@ -67,13 +67,13 @@ const Index = () => {
               href="/games"
             />
             <FeatureCard
-              icon={<Globe className="w-6 h-6 text-neon-purple" />}
+              icon={<Globe className="w-6 h-6 text-accent" />}
               title="Web Proxy"
               description="Browse any website freely through our built-in web proxy. Bypass any filter or firewall."
               href="/proxy"
             />
             <FeatureCard
-              icon={<MessageCircle className="w-6 h-6 text-neon-green" />}
+              icon={<MessageCircle className="w-6 h-6 text-primary" />}
               title="Anonymous Chat"
               description="Talk to others anonymously. No accounts, no tracking, no logs. Just conversation."
               href="/chat"
@@ -105,8 +105,8 @@ const Index = () => {
       <footer className="py-8 border-t border-border/50">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-primary" />
-            <span className="font-mono text-sm neon-text">FreeZone</span>
+            <Zap className="w-4 h-4 text-primary" />
+            <span className="font-mono text-sm neon-text">TakaoNet</span>
           </div>
           <p className="text-muted-foreground text-xs font-mono">
             The internet should be free for everyone.

@@ -56,8 +56,10 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
-  		},
+			},
+			'neon-purple': 'hsl(var(--neon-purple))',
+			'neon-green': 'hsl(var(--neon-green))',
+		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
