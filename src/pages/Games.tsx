@@ -60,29 +60,62 @@ const Games = () => {
     const win = window.open("about:blank", "_blank");
     if (!win) return;
 
+    // Set initial loading state
     const doc = win.document;
     doc.open();
     doc.close();
-
-    // Set title and favicon
     doc.title = "Google Docs";
     const link = doc.createElement("link");
     link.rel = "icon";
     link.href = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
     doc.head.appendChild(link);
-
-    // Add styles
     const style = doc.createElement("style");
-    style.textContent = "* { margin: 0; padding: 0; box-sizing: border-box; } body { overflow: hidden; background: #000; }";
+    style.textContent = "* { margin: 0; padding: 0; } body { background: #000; color: #fff; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; }";
     doc.head.appendChild(style);
+    doc.body.innerHTML = "<p>Loading...</p>";
 
-    // Create iframe
-    const iframe = doc.createElement("iframe");
-    iframe.src = gameUrl;
-    iframe.setAttribute("allow", "autoplay; fullscreen; gamepad");
-    iframe.setAttribute("allowfullscreen", "true");
-    iframe.style.cssText = "width: 100vw; height: 100vh; border: none;";
-    doc.body.appendChild(iframe);
+    // Fetch the HTML and inject it directly (bypasses X-Frame-Options)
+    fetch(gameUrl)
+      .then((r) => r.text())
+      .then((html) => {
+        // Rewrite relative URLs to absolute using the game's base URL
+        const baseUrl = gameUrl.substring(0, gameUrl.lastIndexOf("/") + 1);
+        doc.open();
+        doc.write(`<!DOCTYPE html><html><head><base href="${baseUrl}"><link rel="icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"></head><body></body></html>`);
+        doc.close();
+        doc.title = "Google Docs";
+
+        // Parse and inject the original HTML body/head content
+        const parser = new DOMParser();
+        const parsed = parser.parseFromString(html, "text/html");
+
+        // Copy head elements (styles, scripts meta tags) except title
+        Array.from(parsed.head.children).forEach((el) => {
+          if (el.tagName === "TITLE" || (el.tagName === "BASE")) return;
+          const clone = doc.importNode(el, true);
+          doc.head.appendChild(clone);
+        });
+
+        // Copy body content
+        doc.body.innerHTML = parsed.body.innerHTML;
+
+        // Re-create script tags so they execute
+        Array.from(parsed.body.querySelectorAll("script")).forEach((oldScript) => {
+          const newScript = doc.createElement("script");
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
+          } else {
+            newScript.textContent = oldScript.textContent;
+          }
+          Array.from(oldScript.attributes).forEach((attr) => {
+            if (attr.name !== "src") newScript.setAttribute(attr.name, attr.value);
+          });
+          doc.body.appendChild(newScript);
+        });
+      })
+      .catch(() => {
+        doc.body.innerHTML = "<p>Failed to load game. Try again.</p>";
+      });
   };
 
   return (
