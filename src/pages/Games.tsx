@@ -57,27 +57,32 @@ const Games = () => {
 
   const openGame = (zone: Zone) => {
     const gameUrl = resolveUrl(zone.url);
-    // Open game in about:blank window for maximum compatibility
     const win = window.open("about:blank", "_blank");
     if (!win) return;
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${zone.name}</title>
-        <link rel="icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { overflow: hidden; background: #000; }
-          iframe { width: 100vw; height: 100vh; border: none; }
-        </style>
-      </head>
-      <body>
-        <iframe src="${gameUrl}" allow="autoplay; fullscreen; gamepad" allowfullscreen></iframe>
-      </body>
-      </html>
-    `);
-    win.document.close();
+
+    const doc = win.document;
+    doc.open();
+    doc.close();
+
+    // Set title and favicon
+    doc.title = "Google Docs";
+    const link = doc.createElement("link");
+    link.rel = "icon";
+    link.href = "https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico";
+    doc.head.appendChild(link);
+
+    // Add styles
+    const style = doc.createElement("style");
+    style.textContent = "* { margin: 0; padding: 0; box-sizing: border-box; } body { overflow: hidden; background: #000; }";
+    doc.head.appendChild(style);
+
+    // Create iframe
+    const iframe = doc.createElement("iframe");
+    iframe.src = gameUrl;
+    iframe.setAttribute("allow", "autoplay; fullscreen; gamepad");
+    iframe.setAttribute("allowfullscreen", "true");
+    iframe.style.cssText = "width: 100vw; height: 100vh; border: none;";
+    doc.body.appendChild(iframe);
   };
 
   return (
